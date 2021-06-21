@@ -1,6 +1,18 @@
 # BackTimer
 
-Обратный таймер
+Проект таймера
+
+При прошиве можно выбрать какой таймер зашить:
+
+TIMER_MODE (1 - таймер, 2 - обратный таймер)
+
+Режимы работы реле:
+
+FIRST_GROUP_RELAY_MODE или SECOND_GROUP_RELAY_MODE (1 - Полное включение, 2 - пульсация)
+FIRST_GROUP_RELAY_MODE_PIN или SECOND_GROUP_RELAY_MODE_PIN (1 - прямое реле, 2 - обратное реле)
+
+SECOND_GROUP_RELAY_MODE 2 // 1 - Полное включение, 2 - пульсация
+SECOND_GROUP_RELAY_MODE_PIN 2 // 1 - прямое реле, 2 - обратное реле
 
 Управление 4мя кнопками
 - Старт
