@@ -88,6 +88,45 @@ void DTM1650::write_num(uint16_t num, uint8_t position) {
 	send_digit(DTM1650_Digit_Table[num], position);
 }
 
+void DTM1650::write_num(float num) {
+	float temp1;
+	uint16_t temp;
+	uint8_t digit;
+	if (num < 0)
+	{
+		temp1 = num * -100;
+		temp = (uint16_t)temp1;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 3);
+		temp = temp / 10;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 2);
+		set_dot(1, true);
+		temp = temp / 10;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 1);
+		
+		send_digit(DTM1650_S_MINUS, 0);
+	}
+	else
+	{
+		temp1 = num * 100;
+		temp = (uint16_t)temp1;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 3);
+		temp = temp / 10;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 2);
+		set_dot(1, true);
+		temp = temp / 10;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 1);
+		temp = temp / 10;
+		digit = temp % 10;
+		send_digit(DTM1650_Digit_Table[digit], 0);
+	}
+}
+
 void DTM1650::write_num(uint16_t num) {
 	uint8_t digit;
 	digit = num % 10;

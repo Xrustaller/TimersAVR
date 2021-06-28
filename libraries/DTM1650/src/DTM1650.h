@@ -14,6 +14,10 @@
 
 #define DTM1650_BRIGHTNESS_MAX		8
 #define DTM1650_BRIGHTNESS_MIN		1
+
+
+#define DTM1650_S_MINUS 0x40
+
 /*
 Brightness settings
 MSB				LSB
@@ -89,6 +93,7 @@ public:
 	void colon_on(void);
 	void colon_off(void);
 	void clear_display(void);
+	void write_num(float num);
 	void write_num(uint16_t num);
 	void write_num(uint16_t num, uint8_t position);
 	void write_time(uint16_t minute, uint16_t second);
