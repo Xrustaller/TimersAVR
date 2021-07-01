@@ -307,8 +307,6 @@ void button_tick()
 	
     if (button_start.isSingle() || button_start.isHold())
     {
-        is_start_timer = true;
-        is_timer_pause = false;
 #if TIMER_MODE == 1
         timer_sec = 0;
         timer_min = 0;
@@ -317,7 +315,9 @@ void button_tick()
         timer_min = timer_set_min;
 #endif
         relay_on();
-        relay_pulse(true);
+        relay_pulse(!is_timer_pause);
+        is_start_timer = true;
+        is_timer_pause = false;
         timer = millis();
         display.write_time(timer_min, timer_sec);
         tone(BEEP_PIN, 5000, 100);
