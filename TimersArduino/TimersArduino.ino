@@ -1,5 +1,3 @@
-
-
 #define TIMER_MODE 2 // 1 - таймер, 2 - обратный таймер
 
 #define FIRST_GROUP_RELAY_MODE 2 // 1 - Полное включение, 2 - пульсация
@@ -22,9 +20,18 @@
 
 #define BEEP_PIN 9 // Пин пьезо (при выборе 9 пина, 10 - недоступен из-за шим)
 
+#define SOFT_UART_SPEED 1000 // Скорость Soft-UART
+
+#define SOFT_UART_PIN 13 // Пин
+#define BUS_ADRESS 0 // Адрес
+#define SOFT_UART_BUFFER 20 // Буфер 
+
 #include <Wire.h>
 #include <GyverButton.h>
 #include <DTM1650.h>
+#include <TIMECLASS.h>
+#include <softUART.h>
+#include <GBUS.h>
 
 GButton button_start(BTN_PIN_START);
 GButton button_reset(BTN_PIN_RESET);
@@ -33,14 +40,15 @@ GButton button_plus(BTN_PIN_PLUS);
 
 DTM1650 display;
 
+softUART<SOFT_UART_PIN> main_soft_uart(SOFT_UART_SPEED);
+GBUS main_bus(&main_soft_uart, BUS_ADRESS, SOFT_UART_BUFFER);
+
 bool is_start_timer = false;
 bool is_timer_pause = false;
-uint8_t timer_set_sec = 0;   // переменные для отсчета минут и секунд
-uint8_t timer_set_min = 1;
+TIMECLASS time_set(1, 0);
 
 unsigned long timer;
-uint8_t timer_sec;   // переменные для отсчета минут и секунд
-uint8_t timer_min;
+TIMECLASS time;
 
 unsigned long timer_relay_pulse;
 bool is_relay_pulse = false;
@@ -144,6 +152,16 @@ void relay_pulse(const bool pulse)
 	
 }
 
+void draw()
+{
+    display.write_longtime(time.GetMin(), time.GetSec());
+}
+
+void draw_set()
+{
+    display.write_time(time_set.GetMin(), time_set.GetSec());
+}
+
 void setup()
 {
     button_start.setClickTimeout(50);
@@ -165,106 +183,82 @@ void setup()
     
     display.init();
     display.set_brightness(DTM1650_BRIGHTNESS_MAX);
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
 }
 
 void timer_set_plus()
 {
-    if (timer_set_sec >= 59 && timer_set_min >= 99)
+    if (time_set.GetSec() >= 59 && time_set.GetMin() >= 99)
     {
         tone(BEEP_PIN, 2000, 100);
     }
     else
     {
-        if (timer_set_sec > 58)
-        {
-            timer_set_min++;
-            timer_set_sec = 0;
-        }
-        else
-        {
-            timer_set_sec++;
-        }
+        time_set.TickSec();
     }
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
 }
 
 void timer_set_plus_5_min()
 {
-    if (timer_set_min >= 95)
+    if (time_set.GetMin() >= 95)
     {
         tone(BEEP_PIN, 2000, 100);
     }
     else
     {
-        timer_set_min += 5;
+        time_set.AddMin(5);
     }
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
 }
 
 void timer_set_plus_10_min()
 {
-    if (timer_set_min >= 90)
+    if (time_set.GetMin() >= 90)
     {
         tone(BEEP_PIN, 2000, 100);
     }
     else
     {
-        timer_set_min += 10;
+        time_set.AddMin(10);
     }
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
 }
 
 void timer_set_minus()
 {
-    if (timer_set_sec < 2 && timer_set_min < 1)
+    if (time_set.GetSec() < 2 && time_set.GetMin() < 1)
     {
         tone(BEEP_PIN, 200, 100);
     }
     else
     {
-        if (timer_set_sec == 0)
-        {
-            timer_set_min--;
-            timer_set_sec = 59;
-        }
-        else
-        {
-            timer_set_sec--;
-        }
+        time_set.TickSecBack();
     }
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
 }
 
 void timer_set_minus_5_min()
 {
-    if (timer_set_min < 5)
+    if (!time_set.RemMin(5))
     {
-        tone(BEEP_PIN, 200, 100);
+	    tone(BEEP_PIN, 200, 100);
     }
-    else
-    {
-      timer_set_min -= 5;
-    }
-    display.write_time(timer_set_min, timer_set_sec);
+	draw_set();
 }
 
 void timer_set_minus_10_min()
 {
-    if (timer_set_min < 10)
+    if (!time_set.RemMin(10))
     {
         tone(BEEP_PIN, 200, 100);
     }
-    else
-    {
-        timer_set_min -= 10;
-    }
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
 }
 
 void reset_timer()
 {
-    display.write_time(timer_set_min, timer_set_sec);
+    draw_set();
     is_start_timer = false;
     is_timer_pause = false;
     relay_off();
@@ -308,26 +302,23 @@ void button_tick()
     if (button_start.isSingle() || button_start.isHold())
     {
 #if TIMER_MODE == 1
-        timer_sec = 0;
-        timer_min = 0;
+        time.Clear();
 #else
-        timer_sec = timer_set_sec;
-        timer_min = timer_set_min;
+        time = time_set;
 #endif
         relay_on();
         relay_pulse(!is_timer_pause);
         is_start_timer = true;
         is_timer_pause = false;
         timer = millis();
-        display.write_time(timer_min, timer_sec);
+        draw();
         tone(BEEP_PIN, 5000, 100);
     }
     
     if (button_reset.isHolded())
     {
-        timer_set_min = 1;
-        timer_set_sec = 0;
-        display.write_time(timer_set_min, timer_set_sec);
+        time_set.Set(1 , 0);
+        draw_set();
         tone(BEEP_PIN, 200, 100);
     }
 
@@ -378,51 +369,32 @@ void button_tick()
 void timer_tick()
 {
 #if TIMER_MODE == 1 // секундомер
-    if (timer_sec >= timer_set_sec && timer_min >= timer_set_min)
+    if (time.GetSec() >= time_set.GetSec() && time.GetMin() >= time_set.GetMin())
     {
         reset_timer();
     }
     else
     {
-        if (millis() - timer > 1000)
-        {
+        if (millis() - timer > 1000) {
             timer = millis();
-            if (timer_sec > 58)
-            {
-                timer_min++;
-                timer_sec = 0;
-            }
-            else
-            {
-                timer_sec++;
-            }
-            display.write_time(timer_min, timer_sec);
+            time.TickSec();
+            draw();
         }
     }
 #else
-    if (timer_sec < 1 && timer_min < 1)
+    if (millis() - timer > 1000)
     {
-        reset_timer();
-    }
-    else
-    {
-        if (millis() - timer > 1000)
+        timer = millis();
+        if (time.TickSecBack())
         {
-            timer = millis();
-            if (timer_sec == 0)
-            {
-                timer_min--;
-                timer_sec = 59;
-            }
-            else
-            {
-                timer_sec--;
-            }
-            display.write_time(timer_min, timer_sec);
+	        draw();
+        }
+        else
+        {
+	        reset_timer();
         }
     }
 #endif
-    
 }
 
 void loop()
@@ -435,4 +407,5 @@ void loop()
     }
 
     relay_pulse(false);
+    main_bus.tick();
 }
