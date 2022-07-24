@@ -12,8 +12,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
-    <RootNamespace>TimersArduino</RootNamespace>
-    <ProjectName>TimersArduino</ProjectName>
+    <RootNamespace>TimersAVR</RootNamespace>
+    <ProjectName>TimersAVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,8 +75,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\TimersArduino;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\libraries\Wire\src;C:\Users\stalk\Documents\Arduino\libraries\GyverButton\src;C:\Users\stalk\Documents\Arduino\libraries\DTM1650\src;C:\Users\stalk\Documents\Arduino\libraries\XLibs;C:\Users\stalk\Documents\Arduino\libraries\Modbus-Master-Slave-for-Arduino-master;C:\Users\stalk\Documents\Arduino\libraries\ArduinoJson\src;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\libraries\Wire\src\utility;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\variants\eightanaloginputs;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\cores\arduino;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\\lib\gcc\avr\7.3.0\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\avr\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\\lib\gcc\avr\7.3.0\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\avr\include-fixed;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\avr\include\avr;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\lib\gcc\avr\4.9.2\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\lib\gcc\avr\4.9.2\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>$(ProjectDir)__vm\.TimersArduino.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\TimersAVR;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\libraries\Wire\src;C:\Users\stalk\Documents\Arduino\libraries\GyverButton\src;C:\Users\stalk\Documents\Arduino\libraries\DTM1650\src;C:\Users\stalk\Documents\Arduino\libraries\XLibs;C:\Users\stalk\Documents\Arduino\libraries\Modbus-Master-Slave-for-Arduino-master;C:\Users\stalk\Documents\Arduino\libraries\ArduinoJson\src;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\libraries\Wire\src\utility;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\variants\eightanaloginputs;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.8.4\cores\arduino;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\\lib\gcc\avr\7.3.0\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\avr\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\\lib\gcc\avr\7.3.0\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\avr\include-fixed;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\avr\include\avr;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\lib\gcc\avr\4.9.2\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\lib\gcc\avr\4.9.2\include;C:\Users\stalk\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\7.3.0-atmel3.6.1-arduino7\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.TimersAVR.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_atmega328p__;__AVR_ATmega328P__;__AVR_ATmega328p__;F_CPU=16000000L;ARDUINO=108013;ARDUINO_AVR_NANO;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -107,12 +107,12 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="TimersArduino.ino">
+    <None Include="TimersAVR.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.TimersArduino.vsarduino.h" />
+    <ClInclude Include="__vm\.TimersAVR.vsarduino.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
