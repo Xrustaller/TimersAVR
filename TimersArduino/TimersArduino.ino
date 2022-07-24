@@ -1,62 +1,69 @@
+/* -------------------------------------- Основные  настройки -------------------------------------- */
+
 #define TIMER_MODE 2 // 1 - таймер, 2 - обратный таймер
 
-#define FIRST_GROUP_RELAY_MODE 2 // 1 - Полное включение, 2 - пульсация
-#define FIRST_GROUP_RELAY_MODE_PIN 2 // 1 - прямое реле, 2 - обратное реле
-
-#define SECOND_GROUP_RELAY_MODE 2 // 1 - Полное включение, 2 - пульсация
-#define SECOND_GROUP_RELAY_MODE_PIN 2 // 1 - прямое реле, 2 - обратное реле
+#define GROUP_RELAY_MODE 1 // 1 - Полное включение, 2 - пульсация
+#define GROUP_RELAY_MODE_PIN 2 // 1 - прямое реле, 2 - обратное реле
 
 #define BTN_PIN_START 2 // Кнопка СТАРТ
 #define BTN_PIN_RESET 3 // Кнопка СБРОС
 #define BTN_PIN_MINUS 4 // Кнопка -
 #define BTN_PIN_PLUS 5 // Кнопка +
 
-
-#define FIRST_GROUP_RELAY_PIN_1 11
-#define FIRST_GROUP_RELAY_PIN_2 12
-
-#define SECOND_GROUP_RELAY_PIN_1 6
-#define SECOND_GROUP_RELAY_PIN_2 7
+#define FIRST_GROUP_RELAY_PIN_1 6
+#define FIRST_GROUP_RELAY_PIN_2 7
 
 #define BEEP_PIN 9 // Пин пьезо (при выборе 9 пина, 10 - недоступен из-за шим)
 
-#define SOFT_UART_SPEED 1000 // Скорость Soft-UART
+/* ------------------------------------------------------------------------------------------------- */
 
-#define SOFT_UART_PIN 13 // Пин
-#define BUS_ADRESS 0 // Адрес
-#define SOFT_UART_BUFFER 20 // Буфер 
+/* ---------------------------- Настройка обмена данными между модулями ---------------------------- */
+
+#define BUS_ID 3 // Адрес (Таймер) 
+#define PIN_TIMER_ON 13 // Вывод сигнала включения
+
+/* ------------------------------------------------------------------------------------------------- */
+
+/* ------------------------------------- Подключение библиотек ------------------------------------- */
 
 #include <Wire.h>
 #include <GyverButton.h>
 #include <DTM1650.h>
 #include <TIMECLASS.h>
-#include <softUART.h>
-#include <GBUS.h>
+#include <ModbusRtu.h>
 
+/* ------------------------------------------------------------------------------------------------- */
+
+/* -- Глобальные переменные -- */
+
+// Кнопки управления
 GButton button_start(BTN_PIN_START);
 GButton button_reset(BTN_PIN_RESET);
 GButton button_minus(BTN_PIN_MINUS);
 GButton button_plus(BTN_PIN_PLUS);
-
+// Экран
 DTM1650 display;
-
-softUART<SOFT_UART_PIN> main_soft_uart(SOFT_UART_SPEED);
-GBUS main_bus(&main_soft_uart, BUS_ADRESS, SOFT_UART_BUFFER);
+// Работа с шиной
+Modbus bus(BUS_ID, 0, 0);
+int8_t state = 0;
+uint16_t temp[2] = { 0, 0 };
 
 bool is_start_timer = false;
 bool is_timer_pause = false;
-TIMECLASS time_set(1, 0);
+XLibs::TIMECLASS time_set(1, 0);
 
 unsigned long timer;
-TIMECLASS time;
+XLibs::TIMECLASS time;
 
 unsigned long timer_relay_pulse;
 bool is_relay_pulse = false;
 
+unsigned long tm;
+
 void relay_on()
 {
-#if FIRST_GROUP_RELAY_MODE == 1
-	#if FIRST_GROUP_RELAY_MODE_PIN == 1
+#if GROUP_RELAY_MODE == 1
+	#if GROUP_RELAY_MODE_PIN == 1
 	    digitalWrite(FIRST_GROUP_RELAY_PIN_1, HIGH);
 	    digitalWrite(FIRST_GROUP_RELAY_PIN_2, HIGH);
 	#else
@@ -64,34 +71,16 @@ void relay_on()
 	    digitalWrite(FIRST_GROUP_RELAY_PIN_2, LOW);
 	#endif
 #endif
-
-#if SECOND_GROUP_RELAY_MODE == 1
-	#if SECOND_GROUP_RELAY_MODE_PIN == 1
-	        digitalWrite(SECOND_GROUP_RELAY_PIN_1, HIGH);
-	        digitalWrite(SECOND_GROUP_RELAY_PIN_2, HIGH);
-	#else
-	        digitalWrite(SECOND_GROUP_RELAY_PIN_1, LOW);
-	        digitalWrite(SECOND_GROUP_RELAY_PIN_2, LOW);
-	#endif
-#endif
 }
 
 void relay_off()
 {
-#if FIRST_GROUP_RELAY_MODE_PIN == 1
+#if GROUP_RELAY_MODE_PIN == 1
     digitalWrite(FIRST_GROUP_RELAY_PIN_1, LOW);
     digitalWrite(FIRST_GROUP_RELAY_PIN_2, LOW);
 #else
     digitalWrite(FIRST_GROUP_RELAY_PIN_1, HIGH);
     digitalWrite(FIRST_GROUP_RELAY_PIN_2, HIGH);
-#endif
-
-#if SECOND_GROUP_RELAY_MODE_PIN == 1
-    digitalWrite(SECOND_GROUP_RELAY_PIN_1, LOW);
-    digitalWrite(SECOND_GROUP_RELAY_PIN_2, LOW);
-#else
-    digitalWrite(SECOND_GROUP_RELAY_PIN_1, HIGH);
-    digitalWrite(SECOND_GROUP_RELAY_PIN_2, HIGH);
 #endif
 }
 
@@ -101,23 +90,13 @@ void relay_pulse(const bool pulse)
     {
         if (millis() - timer_relay_pulse > 1000)
         {
-#if FIRST_GROUP_RELAY_MODE == 2
-#if FIRST_GROUP_RELAY_MODE_PIN == 1
+#if GROUP_RELAY_MODE == 2
+#if GROUP_RELAY_MODE_PIN == 1
             digitalWrite(FIRST_GROUP_RELAY_PIN_1, LOW);
             digitalWrite(FIRST_GROUP_RELAY_PIN_2, LOW);
 #else
             digitalWrite(FIRST_GROUP_RELAY_PIN_1, HIGH);
             digitalWrite(FIRST_GROUP_RELAY_PIN_2, HIGH);
-#endif
-#endif
-
-#if SECOND_GROUP_RELAY_MODE == 2
-#if SECOND_GROUP_RELAY_MODE_PIN == 1
-            digitalWrite(SECOND_GROUP_RELAY_PIN_1, LOW);
-            digitalWrite(SECOND_GROUP_RELAY_PIN_2, LOW);
-#else
-            digitalWrite(SECOND_GROUP_RELAY_PIN_1, HIGH);
-            digitalWrite(SECOND_GROUP_RELAY_PIN_2, HIGH);
 #endif
 #endif
             is_relay_pulse = false;
@@ -126,8 +105,8 @@ void relay_pulse(const bool pulse)
 	
 	if (pulse)
 	{
-#if FIRST_GROUP_RELAY_MODE == 2
-#if FIRST_GROUP_RELAY_MODE_PIN == 1
+#if GROUP_RELAY_MODE == 2
+#if GROUP_RELAY_MODE_PIN == 1
         digitalWrite(FIRST_GROUP_RELAY_PIN_1, HIGH);
         digitalWrite(FIRST_GROUP_RELAY_PIN_2, HIGH);
 #else
@@ -136,20 +115,9 @@ void relay_pulse(const bool pulse)
 #endif
 #endif
 
-#if SECOND_GROUP_RELAY_MODE == 2
-#if SECOND_GROUP_RELAY_MODE_PIN == 1
-        digitalWrite(SECOND_GROUP_RELAY_PIN_1, HIGH);
-        digitalWrite(SECOND_GROUP_RELAY_PIN_2, HIGH);
-#else
-        digitalWrite(SECOND_GROUP_RELAY_PIN_1, LOW);
-        digitalWrite(SECOND_GROUP_RELAY_PIN_2, LOW);
-#endif
-#endif
-		
         is_relay_pulse = true;
         timer_relay_pulse = millis();
 	}
-	
 }
 
 void draw()
@@ -175,11 +143,11 @@ void setup()
 	
     pinMode(FIRST_GROUP_RELAY_PIN_1, OUTPUT);
     pinMode(FIRST_GROUP_RELAY_PIN_2, OUTPUT);
-    pinMode(SECOND_GROUP_RELAY_PIN_1, OUTPUT);
-    pinMode(SECOND_GROUP_RELAY_PIN_2, OUTPUT);
+    pinMode(PIN_TIMER_ON, OUTPUT);
     relay_off();
 
     Wire.begin();
+    bus.begin(19200);
     
     display.init();
     display.set_brightness(DTM1650_BRIGHTNESS_MAX);
@@ -258,11 +226,14 @@ void timer_set_minus_10_min()
 
 void reset_timer()
 {
+    time.Clear();
+    temp[1] = 0;
     draw_set();
+    relay_off();
+    if (!is_timer_pause) relay_pulse(true);
     is_start_timer = false;
     is_timer_pause = false;
-    relay_off();
-    relay_pulse(true);
+    digitalWrite(PIN_TIMER_ON, LOW);
     tone(BEEP_PIN, 5000, 1000);
 }
 
@@ -306,12 +277,14 @@ void button_tick()
 #else
         time = time_set;
 #endif
+        temp[1] = time.ToSec();
         relay_on();
         relay_pulse(!is_timer_pause);
         is_start_timer = true;
         is_timer_pause = false;
         timer = millis();
         draw();
+        digitalWrite(PIN_TIMER_ON, HIGH);
         tone(BEEP_PIN, 5000, 100);
     }
     
@@ -368,7 +341,7 @@ void button_tick()
 
 void timer_tick()
 {
-#if TIMER_MODE == 1 // секундомер
+#if TIMER_MODE == 1 // таймер
     if (time.GetSec() >= time_set.GetSec() && time.GetMin() >= time_set.GetMin())
     {
         reset_timer();
@@ -379,6 +352,7 @@ void timer_tick()
             timer = millis();
             time.TickSec();
             draw();
+            temp[1] = time.ToSec();
         }
     }
 #else
@@ -388,6 +362,7 @@ void timer_tick()
         if (time.TickSecBack())
         {
 	        draw();
+            temp[1] = time.ToSec();
         }
         else
         {
@@ -395,10 +370,13 @@ void timer_tick()
         }
     }
 #endif
+    
 }
 
 void loop()
 {
+    state = bus.poll(temp, 2);
+
     button_tick();
 	
 	if (is_start_timer && !is_timer_pause)
@@ -407,5 +385,8 @@ void loop()
     }
 
     relay_pulse(false);
-    main_bus.tick();
+    if (millis() - tm > 3000)
+    {
+        tm = millis();
+    }
 }
